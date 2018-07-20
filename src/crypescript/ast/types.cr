@@ -6,15 +6,15 @@ module Crypescript
     end
 
     def transpile(node : Crystal::TypeDeclaration)
-      @@log.debug "TYPEDEC: #{CURRENT_CONTEXT.last}"
+      @@log.debug "TYPEDEC: #{CURRENT_CONTEXT.last} #{@@variables[node.var.to_s]?}"
 
       io = IO::Memory.new
       if @@variables[node.var.to_s]?
         if !@@variables[node.var.to_s].global
-          io << "let "
+          io << "let " unless CURRENT_CONTEXT.last === :class
         end
       else
-        io << "let "
+        io << "let " unless CURRENT_CONTEXT.last === :class
       end
 
       @@variables[node.var.to_s] = Crypescript::Variable.new(node.var.to_s, node.value)
@@ -22,7 +22,6 @@ module Crypescript
       io << node.var.to_s
       io << ": #{transpile node.declared_type}"
       io << " = #{transpile node.value}" if !node.value.nil?
-      io << ';'
       io.to_s
     end
 

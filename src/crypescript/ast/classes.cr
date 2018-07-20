@@ -15,5 +15,13 @@ module Crypescript
     def transpile(node : Crystal::Self)
       "this"
     end
+
+    # When a new class is instanced
+    def transpile(node : AST::New)
+      io = IO::Memory.new
+      io << "#{node.name} #{node.obj}"
+      io << "(#{node.args.join(", ")})" if !node.args.empty?
+      io.to_s
+    end
   end
 end

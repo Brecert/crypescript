@@ -18,13 +18,24 @@ module Crypescript
       variable = Variable.new(node.target.to_s, node.value)
 
       io << "let " if !@@variables[node.target.to_s]? && !variable.global
-      io << "#{transpile node.target}"
-      io << ": #{transpile variable.value.class}" if !@@variables[node.target.to_s]? && !variable.global
+      io << "#{transpile(node.target)}"
+      if variable.value.is_a?(Crystal::ArrayLiteral)
+        io << ": #{node.value.as(Crystal::ArrayLiteral).of}[]"
+      else
+        io << ": #{transpile variable.value.class}" if !@@variables[node.target.to_s]? && !variable.global
+      end
       io << " = "
-      io << "#{transpile variable.value}"
+      io << "#{transpile(variable.value)}"
       assign(node.target.to_s, variable)
 
       io.to_s
+    end
+
+    def transpile(node : AST::AssignArray)
+      args = node.args.map do |arg|
+        transpile arg
+      end
+      "#{node.obj}[#{node.args[0]}] = #{args[1..-1].join(", ")}"
     end
 
     def transpile(node : Crystal::OpAssign)

@@ -8,10 +8,11 @@ module Crypescript
   include Crypescript::Core
   include Crypescript::AST
   include Crypescript::Expressions
+  include Crypescript::Literals
   include Crypescript::Types
   include Crypescript::Paths
-  include Crypescript::Variables
   include Crypescript::Functions
+  include Crypescript::Variables
   include Crypescript::Modifiers
   include Crypescript::Classes
   extend self
@@ -39,46 +40,49 @@ module Crypescript
 end
 
 code = %q(
-puts : Any
-puts = console.log
+width       : Number = 500
+height      : Number = 400
+framerate   : Number = 1 / 60
+framedelay  : Number = framerate * 1000
+looptimer   : Number = false
 
-class Math
-  private max : String
+class Vec2D
+  x : Number
+  y : Number
+
+  def initialize(@x : Number, @y : Number)
+  end
+end
+
+class Entity
+  position    : Vec2D
+  velocity    : Vec2D
+  mass        : Number
+  radius      : Number
+  restitution : Number
 
   def initialize
-    @max = 255
-    @min = -255
-  end
-
-  def add(one : Number, two : Number) : Number
-    one + two
-  end
-
-  def pow(num : Number) : Number
-    num ** num
-  end
-
-  private def use
-    self.pow(@max)
+    @position = Vec2D.new(0, 0)
+    @velocity = Vec2D.new(0, 0)
+    @mass = 0.1
+    @radius = 15
+    @restitution = -0.7
   end
 end
 
-class AdvancedMath < Math
-  def sqrt(num)
-    Math.sqrt(num)
+entities = [] of Entity
+entities["ball"] = Entity.new
+
+cd  : Number = 0.47
+rho : Number = 1.22
+a   : Number = Math.PI * ball.radius^2 / (100000)
+ag  : Number = 9.81
+
+def loop
+  entities.each do |entity|
+    fx = -0.5 * cd * a * rho * ball.velocity.x * ball.velocity.x * ball.velocity.x / Math.abs(ball.velocity.x)
   end
 end
-
-Math.pow(10)
-
-def add(one : Number, two : Number) : Number
-	one + two
-end
-
-x = 1
-x = 2
-x = 3
-puts x
 )
 
 puts Crypescript.parse(code)

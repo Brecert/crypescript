@@ -9,6 +9,15 @@ module Crypescript
     class DefInClass < Crystal::Def
     end
 
+    class New < Crystal::Call
+    end
+
+    class AssignArray < Crystal::Call
+    end
+
+    class Each < Crystal::Call
+    end
+
     def transpile(klass : Class)
       translate_type(klass.to_s)
     end

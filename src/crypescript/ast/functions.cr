@@ -53,7 +53,11 @@ module Crypescript
       when /\W/
         io << "#{call.obj} #{call.name} #{transpile call.args.join(", ")}"
       else
-        io << "#{call.obj}.#{call.name}(#{call.args.join(", ")})"
+        if call.obj.nil?
+          io << "#{call.name}(#{call.args.join(", ")})"
+        else
+          io << "#{call.obj}.#{call.name}(#{call.args.join(", ")})"
+        end
       end
       io.to_s
     end
@@ -83,10 +87,10 @@ module Crypescript
       io << "for ("
       io << "#{node.block.as(Crystal::Block).args.map { |item| transpile(item) }.join(", ")} " unless node.block.nil?
       io << "#{transpile(Crystal::TypeDeclaration.new(Crystal::Var.new("temp"), Crystal::Path.new(["Any"])))} " if node.block.nil?
-      io << "of #{node.obj}"
+      io << "of #{transpile node.obj}"
       io << ") "
       io << '{'
-      io << "\n#{node.block.as(Crystal::Block).body}\n" unless node.block.nil?
+      io << "\n#{transpile node.block.as(Crystal::Block).body}\n" unless node.block.nil?
       io << '}'
       io.to_s
     end

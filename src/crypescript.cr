@@ -11,6 +11,7 @@ module Crypescript
   include Crypescript::Literals
   include Crypescript::Types
   include Crypescript::Paths
+  include Crypescript::Conditionals
   include Crypescript::Functions
   include Crypescript::Variables
   include Crypescript::Modifiers
@@ -80,7 +81,20 @@ ag  : Number = 9.81
 
 def loop
   entities.each do |entity|
-    fx = -0.5 * cd * a * rho * ball.velocity.x * ball.velocity.x * ball.velocity.x / Math.abs(ball.velocity.x)
+    fx = -0.5 * cd * a * rho * entity.velocity.x * entity.velocity.x * entity.velocity.x / Math.abs(entity.velocity.x)
+    fy = -0.5 * cd * a * rho * entity.velocity.y * entity.velocity.x * entity.velocity.y / Math.abs(entity.velocity.y)
+
+    fx = 0 if isNaN(fx)
+    fy = 0 if isNaN(fy)
+
+    ax = fx / entity.mass
+    ay = ag + (fy / entity.mass)
+
+    entity.velocity.x += ax * frameRate;
+    entity.velocity.y += ay * frameRate;
+
+    entity.position.x += entity.velocity.x * frameRate * 100;
+    entity.position.y += entity.velocity.y * frameRate * 100;
   end
 end
 )

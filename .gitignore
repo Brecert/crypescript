@@ -3,3 +3,9 @@
 /bin/
 /.shards/
 *.dwarf
+
+/dev/
+
+crypescript
+command
+sentry

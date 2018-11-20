@@ -6,16 +6,8 @@ require "./crypescript/**"
 
 module Crypescript
   include Crypescript::Core
-  include Crypescript::AST
   include Crypescript::Expressions
-  include Crypescript::Literals
-  include Crypescript::Types
-  include Crypescript::Paths
-  include Crypescript::Conditionals
-  include Crypescript::Functions
-  include Crypescript::Variables
-  include Crypescript::Modifiers
-  include Crypescript::Classes
+  include Crypescript::Transpiler
   extend self
 
   @@log = Logger.new(STDOUT)
@@ -26,77 +18,77 @@ module Crypescript
     io << label.rjust(5) << progname << ": " << message
   end
 
-  @@variables = Hash(String, Crypescript::Variable).new
+  def log
+    @@log
+  end
 
-  def parse(source_code)
-    parser = Crystal::Parser.new(source_code)
+  def parse(crystal_source_code)
+    parser = Crystal::Parser.new(crystal_source_code)
     node = Crystal::Expressions.from(parser.parse)
     result = ""
     result += transpile(node).strip
-    puts "---"
     result
   end
 
-  CURRENT_CONTEXT = [:top] of Symbol
-end
+  CURRENT_CONTEXT = Array(NamedTuple(symbol: Symbol, node: Crystal::ASTNode)).new
 
-code = %q(
-width       : Number = 500
-height      : Number = 400
-framerate   : Number = 1 / 60
-framedelay  : Number = framerate * 1000
-looptimer   : Number = false
+  CONTEXTS = [:top]
 
-class Vec2D
-  x : Number
-  y : Number
+  VARIABLES = Hash(String, Crystal::ASTNode).new
 
-  def initialize(@x : Number, @y : Number)
+  private def context(context, &block)
+    CONTEXTS.push context
+    result = yield
+    CONTEXTS.pop
+    result
+  end
+
+  private def current_context(context)
+    CONTEXTS.last
+  end
+
+  private def in_context?(context)
+    CONTEXTS.any? { |ctx| ctx == context }
   end
 end
 
-class Entity
-  position    : Vec2D
-  velocity    : Vec2D
-  mass        : Number
-  radius      : Number
-  restitution : Number
+# module Crypescript
+#   include Crypescript::Core
+#   include Crypescript::AST
+#   include Crypescript::Expressions
+#   include Crypescript::Literals
+#   include Crypescript::Types
+#   include Crypescript::Paths
+#   include Crypescript::Conditionals
+#   include Crypescript::Functions
+#   include Crypescript::Variables
+#   include Crypescript::Visibility
+#   include Crypescript::Classes
+#   include Crypescript::Modules
+#   extend self
 
-  def initialize
-    @position = Vec2D.new(0, 0)
-    @velocity = Vec2D.new(0, 0)
-    @mass = 0.1
-    @radius = 15
-    @restitution = -0.7
-  end
-end
+#   @@log = Logger.new(STDOUT)
+#   @@log.level = Logger::DEBUG
 
-entities = [] of Entity
-entities["ball"] = Entity.new
+#   @@log.formatter = Logger::Formatter.new do |severity, datetime, progname, message, io|
+#     label = severity.unknown? ? "ANY" : severity.to_s
+#     io << label.rjust(5) << progname << ": " << message
+#   end
 
-cd  : Number = 0.47
-rho : Number = 1.22
-a   : Number = Math.PI * ball.radius^2 / (100000)
-ag  : Number = 9.81
+#   @@variables = Hash(String, Crypescript::Variable).new
 
-def loop
-  entities.each do |entity|
-    fx = -0.5 * cd * a * rho * entity.velocity.x * entity.velocity.x * entity.velocity.x / Math.abs(entity.velocity.x)
-    fy = -0.5 * cd * a * rho * entity.velocity.y * entity.velocity.x * entity.velocity.y / Math.abs(entity.velocity.y)
+#   def parse(source_code)
+#     parser = Crystal::Parser.new(source_code)
+#     node = Crystal::Expressions.from(parser.parse)
+#     result = ""
+#     result += transpile(node).strip
+#     puts "---"
+#     result
+#   end
 
-    fx = 0 if isNaN(fx)
-    fy = 0 if isNaN(fy)
+#   def log
+#     @@log
+#   end
 
-    ax = fx / entity.mass
-    ay = ag + (fy / entity.mass)
-
-    entity.velocity.x += ax * frameRate;
-    entity.velocity.y += ay * frameRate;
-
-    entity.position.x += entity.velocity.x * frameRate * 100;
-    entity.position.y += entity.velocity.y * frameRate * 100;
-  end
-end
-)
-
-puts Crypescript.parse(code)
+#   CURRENT_CONTEXT = [:top] of Symbol
+# end
